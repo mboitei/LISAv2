@@ -32,13 +32,13 @@ mpi_name="ibm"
 _distro="RHEL"
 
 # debug msg flag
-$debug = true
+debug=1
 
 # functions
 function DebugMsg {
-	if ( $debug ) {
+	if [ $debug -eq 1 ]; then
 		echo $1
-	}
+	fi
 }
 
 function Main() {
@@ -93,6 +93,7 @@ function Main() {
 
 	# install MPI packages
 	if [ $mpi_name == "ibm" ]; then
+		echo "IBM Platform MPI: running ..."
 		#IBM platform MPI installation
 		wget https://partnerpipelineshare.blob.core.windows.net/mpi/platform_mpi-09.01.04.03r-ce.bin
 		chmod +x platform_mpi-09.01.04.03r-ce.bin
@@ -127,10 +128,10 @@ function Main() {
 
 	elif [ $mpi_name -eq "intel"]; then
 		# Intel MPI installation
-		echo "Not implemented yet"
+		echo "Intel MPI: Not implemented yet"
 	else 
 		# Open MPI installation
-		echo "Not implemented yet"
+		echo "Open MPI: Not implemented yet"
 	fi
 	
 	cd ~
