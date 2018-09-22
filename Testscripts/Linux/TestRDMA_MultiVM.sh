@@ -31,14 +31,15 @@ CONSTANTS_FILE="/root/constants.sh"
 imb_mpi1_final_status=0
 imb_rma_final_status=0
 imb_nbc_final_status=0
+test_super_user=root
 
 #Get all the Kernel-Logs from all VMs.
 collect_kernel_logs_from_all_vms() {
 	slaves_array=$(echo ${slaves} | tr ',' ' ')
 	for vm in $master $slaves_array; do
 		LogMsg "Getting kernel logs from $vm"
-		ssh root@${vm} "dmesg > kernel-logs-${vm}.txt"
-		scp root@${vm}:kernel-logs-${vm}.txt .
+		ssh $test_super_user@${vm} "dmesg > kernel-logs-${vm}.txt"
+		scp $test_super_user@${vm}:kernel-logs-${vm}.txt .
 		if [ $? -eq 0 ]; then
 			LogMsg "Kernel Logs collected successfully from ${vm}."
 		else
@@ -88,10 +89,10 @@ total_virtual_machines=0
 slaves_array=$(echo ${slaves} | tr ',' ' ')
 for vm in $master $slaves_array; do
 	LogMsg "Checking $ib_nic status in $vm"
-	temp=$(ssh root@${vm} "ifconfig $ib_nic | grep 'inet '")
+	temp=$(ssh $test_super_user@${vm} "ifconfig $ib_nic | grep 'inet '")
 	ib_nic_status=$?
-	ssh root@${vm} "ifconfig $ib_nic > $ib_nic-status-${vm}.txt"
-	scp root@${vm}:${ib_nic}-status-${vm}.txt .
+	ssh $test_super_user@${vm} "ifconfig $ib_nic > $ib_nic-status-${vm}.txt"
+	scp $test_super_user@${vm}:${ib_nic}-status-${vm}.txt .
 	if [ $ib_nic_status -eq 0 ]; then
 		LogMsg "${ib_nic} IP detected for ${vm}."
 	else
@@ -120,10 +121,10 @@ slaves_array=$(echo ${slaves} | tr ',' ' ')
 for vm in $master $slaves_array; do
 	LogMsg "$mpi_run_path -hosts $vm -ppn 2 -n 2 $non_shm_mpi_settings $imb_mpi1_path pingpong"
 	LogMsg "Checking IMB-MPI1 Intranode status in $vm"
-	ssh root@${vm} "$mpi_run_path -hosts $vm -ppn 2 -n 2 $non_shm_mpi_settings $imb_mpi1_path pingpong \
-    > IMB-MPI1-IntraNode-pingpong-output-$vm.txt"
+	ssh $test_super_user@${vm} "$mpi_run_path -hosts $vm -ppn 2 -n 2 $non_shm_mpi_settings $imb_mpi1_path pingpong \
+		> IMB-MPI1-IntraNode-pingpong-output-$vm.txt"
 	mpi_intranode_status=$?
-	scp root@${vm}:IMB-MPI1-IntraNode-pingpong-output-$vm.txt .
+	scp $test_super_user@${vm}:IMB-MPI1-IntraNode-pingpong-output-$vm.txt .
 	if [ $mpi_intranode_status -eq 0 ]; then
 		LogMsg "IMB-MPI1 Intranode status in $vm - Succeeded."
 	else
@@ -175,14 +176,14 @@ imb_mpi1_final_status=0
 for attempt in $total_attempts; do
 	if [[ $imb_mpi1_tests == "all" ]]; then
 		LogMsg "$mpi_run_path -hosts $master,$slaves -ppn $mpi1_ppn -n \
-        $(($mpi1_ppn * $total_virtual_machines)) $mpi_settings $imb_mpi1_path"
+		$(($mpi1_ppn * $total_virtual_machines)) $mpi_settings $imb_mpi1_path"
 		LogMsg "IMB-MPI1 test iteration $attempt - Running."
 		$mpi_run_path -hosts $master,$slaves -ppn $mpi1_ppn -n $(($mpi1_ppn * $total_virtual_machines))
 		$mpi_settings $imb_mpi1_path >IMB-MPI1-AllNodes-output-Attempt-${attempt}.txt
 		mpi_status=$?
 	else
 		LogMsg "$mpi_run_path -hosts $master,$slaves -ppn $mpi1_ppn -n \
-        $(($mpi1_ppn * $total_virtual_machines)) $mpi_settings $imb_mpi1_path $imb_mpi1_tests"
+		$(($mpi1_ppn * $total_virtual_machines)) $mpi_settings $imb_mpi1_path $imb_mpi1_tests"
 		LogMsg "IMB-MPI1 test iteration $attempt - Running."
 		$mpi_run_path -hosts $master,$slaves -ppn $mpi1_ppn -n \
 			$(($mpi1_ppn * $total_virtual_machines)) $mpi_settings $imb_mpi1_path $imb_mpi1_tests \
@@ -265,7 +266,7 @@ imb_nbc_final_status=0
 for attempt in $total_attempts; do
 	if [[ $imb_nbc_tests == "all" ]]; then
 		LogMsg "$mpi_run_path -hosts $master,$slaves -ppn $nbc_ppn -n \
-        $(($nbc_ppn * $total_virtual_machines)) $mpi_settings $imb_nbc_path"
+		$(($nbc_ppn * $total_virtual_machines)) $mpi_settings $imb_nbc_path"
 		LogMsg "IMB-NBC test iteration $attempt - Running."
 		$mpi_run_path -hosts $master,$slaves -ppn $nbc_ppn -n \
 			$(($nbc_ppn * $total_virtual_machines)) $mpi_settings $imb_nbc_path \
